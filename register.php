@@ -35,17 +35,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $errors[] = "Email already registered";
             } else {
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO users (firstname, lastname, email, phone_number, password_hash) VALUES (?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO users (firstname, lastname, email, phone_number, password) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$firstname, $lastname, $email, $phone, $password_hash]);
                 
+
                 $_SESSION['user_id'] = $pdo->lastInsertId();
                 $_SESSION['role'] = 'user';
                 header("Location: dashboard.php");
                 exit;
             }
-        } catch (PDOException $e) {
-            $errors[] = "Registration failed. Please try again later.";
-        }
+           }   catch (PDOException $e) {
+                $errors[] = "Registration failed: " . $e->getMessage();
+            }
+            
     }
 }
 ?>
@@ -55,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - SafeFind</title>
+    <title>Register - SafeHand</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body {
@@ -229,7 +231,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="register-container">
         <div class="register-info">
-            <h1>Join SafeFind</h1>
+            <h1>Join SafeHand</h1>
             <p>Create your account to start reporting lost items or help others find their belongings. Together, we can make a difference in reuniting people with their valuable possessions.</p>
             <p>Already have an account? <a href="login.php" style="color: white; text-decoration: underline;">Sign in here</a></p>
         </div>

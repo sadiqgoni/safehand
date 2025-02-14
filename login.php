@@ -3,7 +3,12 @@ session_start();
 require_once 'config/database.php';
 
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    // Check user role and redirect accordingly
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+        header("Location: admin.php");
+    } else {
+        header("Location: dashboard.php");
+    }
     exit();
 }
 
@@ -15,12 +20,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
     
-    if ($user && password_verify($password, $user['password_hash'])) {
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['role'] = $user['role'];
+    if ($user && password_verify($password, $user['password'])) {
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['role'] = $user['role'] ?? 'user';
         
-        if ($user['two_factor_enabled']) {
-            header("Location: two-factor-auth.php");
+        // Redirect based on role
+        if ($user['role'] === 'admin') {
+            header("Location: admin.php");
         } else {
             header("Location: dashboard.php");
         }
@@ -36,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SafeFind</title>
+    <title>Login - SafeHand</title>
     <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
     <style>
         body {
@@ -206,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="login-container">
         <div class="login-info">
             <h1>Welcome Back!</h1>
-            <p>Log in to your SafeFind account to manage your lost items, search for found items, and connect with the community.</p>
+            <p>Log in to your SafeHand account to manage your lost items, search for found items, and connect with the community.</p>
         </div>
 
         <div class="login-form-container">

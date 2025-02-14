@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeFind - Lost & Found System</title>
+    <title>SafeHand - Lost & Found System</title>
     <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
     <style>
         /* Hero Section */
@@ -224,7 +224,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <nav class="main-nav">
         <div class="nav-container">
-            <a href="index.php" class="logo">SafeFind</a>
+            <a href="index.php" class="logo">SafeHand</a>
             <div class="nav-links">
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
@@ -235,12 +235,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </nav>
 
     <section class="hero">
-        <h1>Welcome to SafeFind</h1>
+        <h1>Welcome to SafeHand</h1>
         <p>Your trusted platform for reporting and finding lost items. We help reunite people with their valuable possessions.</p>
     </section>
 
     <section class="features" id="features">
-        <h2>Why Choose SafeFind?</h2>
+        <h2>Why Choose SafeHand?</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <h3>Easy Reporting</h3>
@@ -259,7 +259,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <section class="cta">
         <h2>Ready to Find What You've Lost?</h2>
-        <p>Join thousands of users who have successfully recovered their lost items through SafeFind. Start your search today!</p>
+        <p>Join thousands of users who have successfully recovered their lost items through SafeHand. Start your search today!</p>
         <div class="cta-buttons">
             <a href="register.php" class="cta-btn primary">Get Started</a>
             <a href="login.php" class="cta-btn secondary">Sign In</a>
@@ -267,7 +267,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </section>
 
     <footer>
-        <p>&copy; <?php echo date('Y'); ?> SafeFind. All rights reserved.</p>
+        <p>&copy; <?php echo date('Y'); ?> SafeHand. All rights reserved.</p>
     </footer>
 </body>
 </html> 
