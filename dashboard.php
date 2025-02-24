@@ -29,12 +29,23 @@ $stats = $stmt->fetch();
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['report_item'])) {
-    $category = trim($_POST['category']);
-    $title = trim($_POST['title']);
-    $description = trim($_POST['description']);
+    $errors = [];
+    
+    // Validate and sanitize input
+    $category = trim($_POST['category'] ?? '');
+    $title = trim($_POST['title'] ?? '');
+    $description = trim($_POST['description'] ?? '');
     $unique_identifier = trim($_POST['unique_identifier'] ?? '');
-    $location = trim($_POST['location']);
-    $date_lost = trim($_POST['date_lost']);
+    $location = trim($_POST['location'] ?? '');
+    $date_lost = trim($_POST['date_lost'] ?? '');
+    $status = trim($_POST['status'] ?? 'lost');  // Default to 'lost' if not set
+    
+    // Validation
+    if (empty($category)) $errors[] = "Category is required";
+    if (empty($title)) $errors[] = "Title is required";
+    if (empty($description)) $errors[] = "Description is required";
+    if (empty($location)) $errors[] = "Location is required";
+    if (empty($date_lost)) $errors[] = "Date lost is required";
     
     $image_path = null;
     $upload_error = null;
@@ -46,33 +57,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['report_item'])) {
         $filetype = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
         if (in_array($filetype, $allowed)) {
+            // Create uploads directory if it doesn't exist
+            if (!file_exists('uploads')) {
+                mkdir('uploads', 0777, true);
+            }
+            
             $new_filename = uniqid() . '_' . time() . '.' . $filetype;
             $upload_path = 'uploads/' . $new_filename;
             
             if (move_uploaded_file($_FILES['item_image']['tmp_name'], $upload_path)) {
                 $image_path = $upload_path;
             } else {
-                $upload_error = "Failed to upload image. Please try again.";
+                $errors[] = "Failed to upload image. Please try again.";
             }
         } else {
-            $upload_error = "Invalid file type. Only JPG, JPEG, PNG & GIF files are allowed.";
+            $errors[] = "Invalid file type. Only JPG, JPEG, PNG & GIF files are allowed.";
         }
     }
     
-    if ($upload_error) {
-        $_SESSION['error_message'] = $upload_error;
-    } else {
+    if (empty($errors)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO lost_items (user_id, category, title, description, unique_identifier, location, date_lost, image_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'lost')");
-            $stmt->execute([$_SESSION['user_id'], $category, $title, $description, $unique_identifier, $location, $date_lost, $image_path]);
-            $_SESSION['success_message'] = "Item reported successfully!";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
+            $stmt = $pdo->prepare("INSERT INTO lost_items (user_id, category, title, description, unique_identifier, location, date_lost, image_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            if ($stmt->execute([
+                $_SESSION['user_id'],
+                $category,
+                $title,
+                $description,
+                $unique_identifier,
+                $location,
+                $date_lost,
+                $image_path,
+                $status
+            ])) {
+                $_SESSION['success_message'] = "Item reported successfully!";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
+            } else {
+                $_SESSION['error_message'] = "Database error: Failed to insert record.";
+            }
         } catch(PDOException $e) {
-            $_SESSION['error_message'] = "Failed to report item. Please try again.";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
+            $_SESSION['error_message'] = "Database error: " . $e->getMessage();
         }
+    } else {
+        $_SESSION['error_message'] = implode("<br>", $errors);
+    }
+    
+    if (isset($_SESSION['error_message'])) {
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
 
@@ -434,6 +467,11 @@ $reported_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #dc2626;
         }
 
+        .item-card .status.stolen {
+            background: #f97316;
+            color: #fff;
+        }
+
         .item-card .status.found {
             background: #dcfce7;
             color: #16a34a;
@@ -609,11 +647,8 @@ $reported_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="form-group">
                         <label for="category">Category</label>
                         <select name="category" id="category" required>
-                            <option value="">Select Category</option>
                             <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo htmlspecialchars($category['name']); ?>" 
-                                        data-requires-id="<?php echo $category['requires_unique_id']; ?>"
-                                        data-id-label="<?php echo htmlspecialchars($category['unique_id_label']); ?>">
+                                <option value="<?php echo htmlspecialchars($category['name']); ?>">
                                     <?php echo htmlspecialchars($category['name']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -621,19 +656,28 @@ $reported_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="form-group">
+                        <label for="status">Item Status</label>
+                        <select name="status" id="status" required>
+                            <option value="lost">Lost</option>
+                            <option value="stolen">Stolen</option>
+                            <option value="missing">Missing</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="title">Title</label>
-                        <input type="text" id="title" name="title" required placeholder="Enter a descriptive title">
+                        <input type="text" id="title" name="title" required>
                     </div>
 
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label for="description">Description</label>
-                        <textarea id="description" name="description" required placeholder="Provide detailed description of the item"></textarea>
+                        <textarea id="description" name="description" required></textarea>
                     </div>
 
-                    <div class="form-group unique-id-field" style="display: none;">
-                        <label for="unique_identifier">Unique Identifier</label>
-                        <input type="text" id="unique_identifier" name="unique_identifier" placeholder="Enter the unique identifier">
-                        <small class="hint"></small>
+                    <div class="form-group">
+                        <label for="unique_identifier">Unique Identifier (IMEI, VIN, Serial Number)</label>
+                        <input type="text" id="unique_identifier" name="unique_identifier" placeholder="Enter IMEI, VIN, or any unique serial number">
+                        <small class="form-text">If applicable, enter any unique number associated with your item</small>
                     </div>
 
                     <div class="form-group">

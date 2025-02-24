@@ -15,14 +15,17 @@ if (!isset($_GET['id'])) {
 
 $item_id = $_GET['id'];
 
-// Get item details with reporter information
+// Get item details with match request check
 $stmt = $pdo->prepare("
-    SELECT i.*, u.firstname, u.lastname, u.phone_number, u.email
-    FROM lost_items i 
-    JOIN users u ON i.user_id = u.id 
+    SELECT i.*,
+           u.firstname, u.lastname, u.phone_number, u.email,
+           CASE WHEN mr.id IS NOT NULL THEN 1 ELSE 0 END as has_requested_match
+    FROM lost_items i
+    JOIN users u ON i.user_id = u.id
+    LEFT JOIN match_requests mr ON i.id = mr.item_id AND mr.finder_id = ?
     WHERE i.id = ?
 ");
-$stmt->execute([$item_id]);
+$stmt->execute([$_SESSION['user_id'], $item_id]);
 $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$item) {
@@ -90,15 +93,7 @@ try {
 }
 
 // Check if user has already sent a match request
-$has_requested_match = false;
-try {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM match_requests WHERE item_id = ? AND finder_id = ?");
-    $stmt->execute([$item_id, $_SESSION['user_id']]);
-    $has_requested_match = $stmt->fetchColumn() > 0;
-} catch(PDOException $e) {
-    // Table might not exist yet, that's okay
-    $has_requested_match = false;
-}
+$has_requested_match = $item['has_requested_match'] == 1;
 
 // Handle match request
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_match'])) {

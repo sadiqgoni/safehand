@@ -23,9 +23,9 @@ $params = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (!empty($_GET['query'])) {
-        $where_conditions[] = "(title LIKE ? OR description LIKE ? OR location LIKE ?)";
+        $where_conditions[] = "(title LIKE ? OR description LIKE ? OR location LIKE ? OR unique_identifier LIKE ?)";
         $search_term = "%" . $_GET['query'] . "%";
-        $params = array_merge($params, [$search_term, $search_term, $search_term]);
+        $params = array_merge($params, [$search_term, $search_term, $search_term, $search_term]);
     }
     
     if (!empty($_GET['category'])) {
@@ -410,6 +410,11 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #dc2626;
         }
 
+        .status-badge.stolen {
+            background: #f97316;
+            color: #fff;
+        }
+
         .status-badge.found {
             background: #dcfce7;
             color: #16a34a;
@@ -527,7 +532,7 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="search-container">
                 <form method="GET" action="">
                     <div class="search-box">
-                        <input type="text" name="query" placeholder="Search by title, description, or location..." 
+                        <input type="text" name="query" placeholder="Search by title, description, location, or unique identifier (IMEI)..." 
                                value="<?php echo isset($_GET['query']) ? htmlspecialchars($_GET['query']) : ''; ?>">
                     </div>
 
@@ -550,6 +555,8 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <select name="status" id="status">
                                 <option value="">All Status</option>
                                 <option value="lost" <?php echo (isset($_GET['status']) && $_GET['status'] == 'lost') ? 'selected' : ''; ?>>Lost</option>
+                                <option value="stolen" <?php echo (isset($_GET['status']) && $_GET['status'] == 'stolen') ? 'selected' : ''; ?>>Stolen</option>
+                                <option value="missing" <?php echo (isset($_GET['status']) && $_GET['status'] == 'missing') ? 'selected' : ''; ?>>Missing</option>
                                 <option value="found" <?php echo (isset($_GET['status']) && $_GET['status'] == 'found') ? 'selected' : ''; ?>>Found</option>
                                 <option value="resolved" <?php echo (isset($_GET['status']) && $_GET['status'] == 'resolved') ? 'selected' : ''; ?>>Resolved</option>
                             </select>

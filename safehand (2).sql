@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Feb 14, 2025 at 09:28 AM
+-- Generation Time: Feb 17, 2025 at 08:44 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -35,15 +35,6 @@ CREATE TABLE `item_categories` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `item_categories`
---
-
-INSERT INTO `item_categories` (`id`, `name`, `requires_unique_id`, `unique_id_label`, `created_at`) VALUES
-(1, 'Phone', 1, 'IMEI Number', '2025-02-13 22:01:53'),
-(2, 'Vehicle', 1, 'VIN Number', '2025-02-13 22:01:53'),
-(3, 'Other', 0, NULL, '2025-02-13 22:01:53');
-
 -- --------------------------------------------------------
 
 --
@@ -60,7 +51,7 @@ CREATE TABLE `lost_items` (
   `location` varchar(255) NOT NULL,
   `date_lost` date NOT NULL,
   `image_path` varchar(255) DEFAULT NULL,
-  `status` enum('lost','found','resolved') DEFAULT 'lost',
+  `status` enum('lost','stolen','missing','found','resolved') DEFAULT 'lost',
   `verified` tinyint(1) DEFAULT 0,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -165,7 +156,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `item_categories`
 --
 ALTER TABLE `item_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `lost_items`
